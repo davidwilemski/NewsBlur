@@ -333,7 +333,7 @@ public class APIManager {
 		}
 	}
 
-	public Boolean shareStory(final String storyId, final String feedId, final String comment, final String sourceUserId) {
+	public NewsBlurResponse shareStory(final String storyId, final String feedId, final String comment, final String sourceUserId) {
 		final ContentValues values = new ContentValues();
 		if (!TextUtils.isEmpty(comment)) {
 			values.put(APIConstants.PARAMETER_SHARE_COMMENT, comment);
@@ -344,12 +344,8 @@ public class APIManager {
 		values.put(APIConstants.PARAMETER_FEEDID, feedId);
 		values.put(APIConstants.PARAMETER_STORYID, storyId);
 
-		final APIResponse response = post(APIConstants.URL_SHARE_STORY, values);
-		if (!response.isError()) {
-			return true;
-		} else {
-			return false;
-		}
+		APIResponse response = post(APIConstants.URL_SHARE_STORY, values);
+        return response.getResponse(gson, NewsBlurResponse.class);
 	}
 
 	/**
