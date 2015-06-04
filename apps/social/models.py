@@ -2767,6 +2767,10 @@ class MInteraction(mongo.Document):
                                            self.category, self.content and self.content[:20])
     
     def canonical(self):
+        story_hash = None
+        if self.story_feed_id:
+            story_hash = MStory.ensure_story_hash(self.content_id, story_feed_id=self.story_feed_id)
+
         return {
             'date': self.date,
             'category': self.category,
@@ -2776,6 +2780,7 @@ class MInteraction(mongo.Document):
             'feed_id': self.feed_id,
             'story_feed_id': self.story_feed_id,
             'content_id': self.content_id,
+            'story_hash': story_hash,
         }
     
     @classmethod
@@ -2891,11 +2896,12 @@ class MInteraction(mongo.Document):
         cls.publish_update_to_subscribers(user_id)
     
     @classmethod
-    def new_comment_like(cls, liking_user_id, comment_user_id, story_id, story_title, comments):
+    def new_comment_like(cls, liking_user_id, comment_user_id, story_id, story_feed_id, story_title, comments):
         cls.objects.get_or_create(user_id=comment_user_id,
                                   with_user_id=liking_user_id,
                                   category="comment_like",
                                   feed_id="social:%s" % comment_user_id,
+                                  story_feed_id=story_feed_id,
                                   content_id=story_id,
                                   defaults={
                                     "title": story_title,
@@ -2998,6 +3004,10 @@ class MActivity(mongo.Document):
         return "<%s> %s - %s" % (user.username, self.category, self.content and self.content[:20])
     
     def canonical(self):
+        story_hash = None
+        if self.story_feed_id:
+            story_hash = MStory.ensure_story_hash(self.content_id, story_feed_id=self.story_feed_id)
+
         return {
             'date': self.date,
             'category': self.category,
@@ -3008,6 +3018,7 @@ class MActivity(mongo.Document):
             'feed_id': self.feed_id or self.story_feed_id,
             'story_feed_id': self.story_feed_id or self.feed_id,
             'content_id': self.content_id,
+            'story_hash': story_hash,
         }
         
     @classmethod
@@ -3133,11 +3144,12 @@ class MActivity(mongo.Document):
         original.delete()
             
     @classmethod
-    def new_comment_like(cls, liking_user_id, comment_user_id, story_id, story_title, comments):
+    def new_comment_like(cls, liking_user_id, comment_user_id, story_id, story_feed_id, story_title, comments):
         cls.objects.get_or_create(user_id=liking_user_id,
                                   with_user_id=comment_user_id,
                                   category="comment_like",
                                   feed_id="social:%s" % comment_user_id,
+                                  story_feed_id=story_feed_id,
                                   content_id=story_id,
                                   defaults={
                                     "title": story_title,
