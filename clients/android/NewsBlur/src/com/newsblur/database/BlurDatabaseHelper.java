@@ -333,6 +333,7 @@ public class BlurDatabaseHelper {
                 commentValues.add(comment.getValues());
                 for (Reply reply : comment.replies) {
                     reply.commentId = comment.id;
+                    reply.id = reply.constructId();
                     replyValues.add(reply.getValues());
                 }
             }
@@ -344,6 +345,7 @@ public class BlurDatabaseHelper {
                 commentValues.add(comment.getValues());
                 for (Reply reply : comment.replies) {
                     reply.commentId = comment.id;
+                    reply.id = reply.constructId();
                     replyValues.add(reply.getValues());
                 }
             }
@@ -356,6 +358,7 @@ public class BlurDatabaseHelper {
                 commentValues.add(comment.getValues());
                 for (Reply reply : comment.replies) {
                     reply.commentId = comment.id;
+                    reply.id = reply.constructId();
                     replyValues.add(reply.getValues());
                 }
             }
@@ -975,13 +978,23 @@ public class BlurDatabaseHelper {
     public List<Reply> getCommentReplies(String commentId) {
         String[] selArgs = new String[] {commentId};
         String selection = DatabaseConstants.REPLY_COMMENTID+ " = ?";
-        Cursor c = dbRO.query(DatabaseConstants.REPLY_TABLE, DatabaseConstants.REPLY_COLUMNS, selection, selArgs, null, null, DatabaseConstants.REPLY_DATE + " DESC");
+        Cursor c = dbRO.query(DatabaseConstants.REPLY_TABLE, null, selection, selArgs, null, null, DatabaseConstants.REPLY_DATE + " ASC");
         List<Reply> replies = new ArrayList<Reply>(c.getCount());
         while (c.moveToNext()) {
             replies.add(Reply.fromCursor(c));
         }
         closeQuietly(c);
         return replies;
+    }
+
+    public void replyToComment(String storyId, String feedId, String commentUserId, String replyText) {
+        Reply reply = new Reply();
+        reply.commentId = Comment.constructId(storyId, feedId, commentUserId);
+        reply.text = replyText;
+        reply.userId = PrefsUtils.getUserDetails(context).id;
+        reply.date = new Date();
+        reply.id = reply.constructId();
+        synchronized (RW_MUTEX) {dbRW.insertWithOnConflict(DatabaseConstants.REPLY_TABLE, null, reply.getValues(), SQLiteDatabase.CONFLICT_REPLACE);}
     }
 
     public static void closeQuietly(Cursor c) {
