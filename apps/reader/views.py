@@ -1031,7 +1031,13 @@ def folder_rss_feed(request, user_id, secret_token, unread_filter, folder_slug):
     rss = feedgenerator.Atom1Feed(**data)
 
     for story in stories:
+<<<<<<< c8cc382cfdde0aae48aaf81b09f3e47dde488741
         feed = Feed.get_by_id(story['story_feed_id'])
+=======
+        feed = Feed.get_by_id(story.story_feed_id)
+        story_content = (story.story_content_z and
+                         zlib.decompress(story.story_content_z))
+>>>>>>> Adding non premium story.
         story_content = """<img src="//%s/rss_feeds/icon/%s"> %s <br><br> %s""" % (
             Site.objects.get_current().domain,
             story['story_feed_id'],
